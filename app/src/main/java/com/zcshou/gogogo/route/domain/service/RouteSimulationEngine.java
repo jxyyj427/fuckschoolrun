@@ -13,7 +13,6 @@ public final class RouteSimulationEngine {
     private static final double ESTIMATED_STEP_LENGTH_METERS = 0.8d;
     private static final double MINIMUM_SIMULATION_SPEED_METERS_PER_SECOND = 0.5d;
     private static final double MINIMUM_DYNAMIC_SPEED_RATIO = 0.35d;
-    private static final double INTENSITY_SETTLE_EPSILON_METERS_PER_SECOND = 0.05d;
     private static final double PATH_SETTLE_EPSILON_METERS = 0.05d;
     private static final double ALTITUDE_SETTLE_EPSILON_METERS = 0.03d;
     private static final double MINIMUM_ROUTE_SEGMENT_DISTANCE_METERS = 0.01d;
@@ -32,6 +31,7 @@ public final class RouteSimulationEngine {
     private double targetPathOffsetMeters;
     private double currentAltitudeOffsetMeters;
     private double targetAltitudeOffsetMeters;
+    private long intensityHoldRemainingMillis = 0L; // 当前阶段配速剩余保持时间（毫秒）
 
     public RouteSimulationEngine(RouteDefinition routeDefinition, RouteSimulationConfig config) {
         this(routeDefinition, config, new Random());
@@ -111,6 +111,7 @@ public final class RouteSimulationEngine {
         if (!config.isDynamicIntensityEnabled()) {
             currentIntensityOffsetMetersPerSecond = 0d;
             targetIntensityOffsetMetersPerSecond = 0d;
+            intensityHoldRemainingMillis = 0L;
         }
         if (!config.isNaturalPathVariationEnabled()) {
             currentPathOffsetMeters = 0d;
@@ -147,19 +148,29 @@ public final class RouteSimulationEngine {
                 || config.getIntensityVariationFrequency() <= 0d) {
             currentIntensityOffsetMetersPerSecond = 0d;
             targetIntensityOffsetMetersPerSecond = 0d;
+            intensityHoldRemainingMillis = 0L;
             return baseSpeed;
         }
 
         double range = config.getIntensityVariationRangeMetersPerSecond();
         double frequency = config.getIntensityVariationFrequency();
-        if (Math.abs(targetIntensityOffsetMetersPerSecond - currentIntensityOffsetMetersPerSecond)
-                <= INTENSITY_SETTLE_EPSILON_METERS_PER_SECOND
-                || random.nextDouble() < frequency) {
+
+        // 扣减本帧耗时
+        intensityHoldRemainingMillis -= config.getTickMillis();
+
+        // 仅在当前阶段配速保持时间耗尽后，抽取下一阶段目标速度
+        if (intensityHoldRemainingMillis <= 0L) {
             targetIntensityOffsetMetersPerSecond = randomInRange(range);
+            // 频率越高，单阶段维持时间越短（默认 0.35 频率下约维持 12 ~ 35 秒）
+            long minHoldMs = 12_000L;
+            long maxHoldMs = Math.max(minHoldMs, (long) (45_000L - frequency * 30_000L));
+            long spanMs = Math.max(5_000L, maxHoldMs - minHoldMs);
+            intensityHoldRemainingMillis = minHoldMs + (long) (random.nextDouble() * spanMs);
         }
-        double smoothing = 0.15d + (frequency * 0.55d);
+
+        // 渐进平滑过渡到新目标速度，避免瞬时跳变
         currentIntensityOffsetMetersPerSecond +=
-                (targetIntensityOffsetMetersPerSecond - currentIntensityOffsetMetersPerSecond) * smoothing;
+                (targetIntensityOffsetMetersPerSecond - currentIntensityOffsetMetersPerSecond) * 0.08d;
         currentIntensityOffsetMetersPerSecond = clamp(
                 currentIntensityOffsetMetersPerSecond,
                 -range,
@@ -246,8 +257,8 @@ public final class RouteSimulationEngine {
         }
 
         double amplitude = config.getPathVariationAmplitudeMeters();
-        if (Math.abs(targetPathOffsetMeters - currentPathOffsetMeters) <= PATH_SETTLE_EPSILON_METERS
-                || random.nextDouble() < 0.25d) {
+        // 仅在较低概率下重抽横向目标偏移，使轨迹在一段时间内保持稳定偏向，减少高频左右蛇形抖动
+        if (random.nextDouble() < 0.05d) {
             targetPathOffsetMeters = randomInRange(amplitude);
         }
         currentPathOffsetMeters += (targetPathOffsetMeters - currentPathOffsetMeters) * 0.18d;

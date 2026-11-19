@@ -62,7 +62,8 @@ public class RouteSimulationEngineTest {
 
         SimulationFrame frame = engine.next();
 
-        assertEquals(5.84f, frame.getSpeedMetersPerSecond(), 0.0001f);
+        // 新版动态配速首帧只按 0.08 平滑系数过渡到阶段目标偏移（1.2 m/s * 0.08 = 0.096 m/s）
+        assertEquals(5.096f, frame.getSpeedMetersPerSecond(), 0.0001f);
         assertFalse(frame.isFinished());
     }
 
@@ -82,7 +83,7 @@ public class RouteSimulationEngineTest {
                         2.0d,
                         1000L
                 ),
-                new SequenceRandom(0.9d)
+                new SequenceRandom(0.01d, 0.9d)
         );
         RouteSimulationEngine baselineEngine = new RouteSimulationEngine(
                 buildRoute(),
