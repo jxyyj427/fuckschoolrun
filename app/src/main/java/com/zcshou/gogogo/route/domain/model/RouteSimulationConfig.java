@@ -2,8 +2,8 @@ package com.acooldog.toolbox.route.domain.model;
 
 public final class RouteSimulationConfig {
     public static final double DEFAULT_INTENSITY_VARIATION_RANGE_METERS_PER_SECOND = 2.0d;
-    public static final double DEFAULT_INTENSITY_VARIATION_FREQUENCY = 0.35d;
-    public static final double DEFAULT_PATH_VARIATION_AMPLITUDE_METERS = 1.0d;
+    public static final double DEFAULT_INTENSITY_VARIATION_FREQUENCY = 0.50d;
+    public static final double DEFAULT_PATH_VARIATION_AMPLITUDE_METERS = 0.5d;
     public static final double DEFAULT_ALTITUDE_BASE_METERS = 55d;
     public static final double DEFAULT_ALTITUDE_VARIATION_RANGE_METERS = 0.6d;
     public static final double DEFAULT_ALTITUDE_VARIATION_HEIGHT_CENTIMETERS = 170d;

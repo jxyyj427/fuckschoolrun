@@ -67,11 +67,7 @@ public final class SimulationPrefsStore {
     }
 
     public String getRouteSpeed() {
-        String value = preferences.getString(KEY_ROUTE_SPEED, "15");
-        if ("3.8".equals(value)) {
-            return "15";
-        }
-        return value;
+        return normalize(preferences.getString(KEY_ROUTE_SPEED, "3.8"), "3.8");
     }
 
     public String getRouteMode() {
@@ -80,11 +76,7 @@ public final class SimulationPrefsStore {
     }
 
     public String getRouteLoopCount() {
-        String value = preferences.getString(KEY_ROUTE_LOOP_COUNT, "100");
-        if ("10".equals(value)) {
-            return "100";
-        }
-        return value;
+        return normalize(preferences.getString(KEY_ROUTE_LOOP_COUNT, "100"), "100");
     }
 
     public String getRouteCadence() {
@@ -100,7 +92,7 @@ public final class SimulationPrefsStore {
     }
 
     public float getRouteIntensityVariationFrequency() {
-        return clampFrequency(preferences.getFloat(KEY_ROUTE_INTENSITY_FREQUENCY, 0.35f));
+        return clampFrequency(preferences.getFloat(KEY_ROUTE_INTENSITY_FREQUENCY, 0.50f));
     }
 
     public boolean isRouteNaturalPathVariationEnabled() {
@@ -108,7 +100,7 @@ public final class SimulationPrefsStore {
     }
 
     public String getRoutePathVariationAmplitude() {
-        return preferences.getString(KEY_ROUTE_PATH_VARIATION_AMPLITUDE, "1.0");
+        return preferences.getString(KEY_ROUTE_PATH_VARIATION_AMPLITUDE, "0.5");
     }
 
     public boolean isRouteNaturalAltitudeVariationEnabled() {
@@ -214,7 +206,7 @@ public final class SimulationPrefsStore {
     ) {
         preferences.edit()
                 .putString(KEY_ROUTE_MODE, normalizeRouteMode(routeMode))
-                .putString(KEY_ROUTE_SPEED, normalize(speed, "15"))
+                .putString(KEY_ROUTE_SPEED, normalize(speed, "3.8"))
                 .putString(KEY_ROUTE_CADENCE, normalize(cadence, ""))
                 .putString(KEY_ROUTE_LOOP_COUNT, normalize(loopCount, "100"))
                 .putBoolean(KEY_ROUTE_SPEED_FLOAT, speedFloat)
@@ -240,7 +232,7 @@ public final class SimulationPrefsStore {
     public void saveRoutePathVariationSettings(boolean enabled, String amplitude) {
         preferences.edit()
                 .putBoolean(KEY_ROUTE_PATH_VARIATION_ENABLED, enabled)
-                .putString(KEY_ROUTE_PATH_VARIATION_AMPLITUDE, normalize(amplitude, "1.0"))
+                .putString(KEY_ROUTE_PATH_VARIATION_AMPLITUDE, normalize(amplitude, "0.5"))
                 .apply();
     }
 

@@ -164,12 +164,12 @@
     <string name="route_dynamic_intensity_range_hint">2.0</string>
     <string name="route_dynamic_intensity_range_invalid">强度变化范围无效。</string>
     <string name="route_dynamic_intensity_frequency_label">变化发生频率:</string>
-    <string name="route_dynamic_intensity_frequency_default">0.35</string>
+    <string name="route_dynamic_intensity_frequency_default">0.50</string>
     <string name="route_dynamic_intensity_frequency_value">%1$.2f</string>
     <string name="route_dynamic_intensity_help">在当前基础速度上做平滑随机扰动，模拟体力、地形和节奏带来的自然强度波动。</string>
     <string name="route_path_variation_label">路径自然变化</string>
     <string name="route_path_variation_param_label">路径变化参数:</string>
-    <string name="route_path_variation_hint">1.0</string>
+    <string name="route_path_variation_hint">0.5</string>
     <string name="route_path_variation_invalid">路径变化参数无效。</string>
     <string name="route_path_variation_help">沿当前路线方向施加微小横向偏移，模拟跑步时注意力和环境引起的自然路径摆动。</string>
     <string name="route_distance_unit">m</string>
@@ -335,6 +335,7 @@
     <string name="route_settings_download_failed">加载共享设置失败：</string>
     <string name="route_settings_apply_success">共享模拟设置已导入。</string>
     <string name="route_settings_search_hint">搜索设置项</string>
+    <string name="route_settings_letter_mode">M</string>
     <string name="route_settings_letter_link">L</string>
     <string name="route_settings_letter_steps">B</string>
     <string name="route_settings_letter_loop">C</string>

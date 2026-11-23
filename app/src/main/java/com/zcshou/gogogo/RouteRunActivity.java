@@ -132,6 +132,7 @@ public class RouteRunActivity extends BaseActivity {
     private View panelContentLayout;
     private View bottomControlLayout;
     private Spinner simulationModeSpinner;
+    private RouteSimulationConfig.Mode currentSimulationMode = RouteSimulationConfig.Mode.SPEED;
     private View speedControlLayout;
     private View cadenceControlLayout;
     private EditText speedInput;
@@ -174,6 +175,11 @@ public class RouteRunActivity extends BaseActivity {
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private Ringtone activeReminderRingtone;
     private AlertDialog simulationSettingsDialog;
+    private Spinner settingsModeSpinner;
+    private View settingsSpeedControlLayout;
+    private View settingsCadenceControlLayout;
+    private EditText settingsSpeedInput;
+    private EditText settingsCadenceInput;
     private TextView settingsReminderToneView;
     private EditText settingsLinkRatioLeftInput;
     private EditText settingsLinkRatioRightInput;
@@ -1621,7 +1627,10 @@ public class RouteRunActivity extends BaseActivity {
         simulationModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                updateSimulationModeViews(getSelectedSimulationMode());
+                currentSimulationMode = position == 1
+                        ? RouteSimulationConfig.Mode.CADENCE
+                        : RouteSimulationConfig.Mode.SPEED;
+                updateSimulationModeViews(currentSimulationMode);
                 if (!restoringSimulationPrefs) {
                     persistSimulationPrefs();
                     applySimulationConfigHotIfPossible();
@@ -1637,9 +1646,34 @@ public class RouteRunActivity extends BaseActivity {
     }
 
     private RouteSimulationConfig.Mode getSelectedSimulationMode() {
-        return simulationModeSpinner.getSelectedItemPosition() == 1
+        return currentSimulationMode == null ? RouteSimulationConfig.Mode.SPEED : currentSimulationMode;
+    }
+
+    private RouteSimulationConfig.Mode getDialogSelectedSimulationMode() {
+        if (settingsModeSpinner == null) {
+            return getSelectedSimulationMode();
+        }
+        return settingsModeSpinner.getSelectedItemPosition() == 1
                 ? RouteSimulationConfig.Mode.CADENCE
                 : RouteSimulationConfig.Mode.SPEED;
+    }
+
+    private void updateDialogModeViews(RouteSimulationConfig.Mode mode) {
+        boolean cadenceMode = mode == RouteSimulationConfig.Mode.CADENCE;
+        if (settingsSpeedControlLayout != null) {
+            settingsSpeedControlLayout.setVisibility(cadenceMode ? View.GONE : View.VISIBLE);
+        }
+        if (settingsCadenceControlLayout != null) {
+            settingsCadenceControlLayout.setVisibility(cadenceMode ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    private double parseDialogSimulationValue(EditText input) {
+        try {
+            return parseSimulationValue(input);
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalArgumentException(getString(R.string.route_simulation_invalid));
+        }
     }
 
     private void updateSimulationModeViews(RouteSimulationConfig.Mode mode) {
@@ -1711,8 +1745,11 @@ public class RouteRunActivity extends BaseActivity {
     private void restoreSimulationPrefs() {
         restoringSimulationPrefs = true;
         String routeMode = prefsStore.getRouteMode();
+        currentSimulationMode = SimulationPrefsStore.ROUTE_MODE_CADENCE.equals(routeMode)
+                ? RouteSimulationConfig.Mode.CADENCE
+                : RouteSimulationConfig.Mode.SPEED;
         simulationModeSpinner.setSelection(
-                SimulationPrefsStore.ROUTE_MODE_CADENCE.equals(routeMode) ? 1 : 0,
+                currentSimulationMode == RouteSimulationConfig.Mode.CADENCE ? 1 : 0,
                 false
         );
         speedInput.setText(prefsStore.getRouteSpeed());
@@ -2043,6 +2080,11 @@ public class RouteRunActivity extends BaseActivity {
 
     private void showSimulationSettingsDialog() {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_route_simulation_settings, null);
+        settingsModeSpinner = dialogView.findViewById(R.id.spinner_dialog_run_mode);
+        settingsSpeedControlLayout = dialogView.findViewById(R.id.layout_dialog_speed_control);
+        settingsCadenceControlLayout = dialogView.findViewById(R.id.layout_dialog_cadence_control);
+        settingsSpeedInput = dialogView.findViewById(R.id.et_dialog_run_speed);
+        settingsCadenceInput = dialogView.findViewById(R.id.et_dialog_run_cadence);
         settingsLinkRatioLeftInput = dialogView.findViewById(R.id.et_dialog_link_ratio_left);
         settingsLinkRatioRightInput = dialogView.findViewById(R.id.et_dialog_link_ratio_right);
         settingsStepsPerMeterInput = dialogView.findViewById(R.id.et_dialog_steps_per_meter);
@@ -2082,10 +2124,48 @@ public class RouteRunActivity extends BaseActivity {
         View altitudeVariationContent = dialogView.findViewById(R.id.layout_dialog_altitude_variation_content);
         View floatingWindowContent = dialogView.findViewById(R.id.layout_dialog_floating_window_content);
 
+        ArrayAdapter<CharSequence> modeAdapter = ArrayAdapter.createFromResource(
+                this,
+                R.array.route_mode_options,
+                android.R.layout.simple_spinner_item
+        );
+        modeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        settingsModeSpinner.setAdapter(modeAdapter);
+        RouteSimulationConfig.Mode currentMode = SimulationPrefsStore.ROUTE_MODE_CADENCE.equals(prefsStore.getRouteMode())
+                ? RouteSimulationConfig.Mode.CADENCE
+                : RouteSimulationConfig.Mode.SPEED;
+        settingsModeSpinner.setSelection(currentMode == RouteSimulationConfig.Mode.CADENCE ? 1 : 0, false);
+        String currentSpeedText = prefsStore.getRouteSpeed();
+        String currentCadenceText = prefsStore.getRouteCadence();
+        settingsSpeedInput.setText(currentSpeedText);
+        settingsCadenceInput.setText(currentCadenceText);
+        updateDialogModeViews(currentMode);
+        settingsModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                updateDialogModeViews(position == 1
+                        ? RouteSimulationConfig.Mode.CADENCE
+                        : RouteSimulationConfig.Mode.SPEED);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // No-op.
+            }
+        });
+        settingsSpeedInput.addTextChangedListener(new SimpleTextWatcher() {
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (settingsLinkRatioRightInput != null) {
+                    settingsLinkRatioRightInput.setText(editable == null ? "" : editable.toString().trim());
+                }
+            }
+        });
+
         settingsLinkRatioLeftInput.setText(prefsStore.getRouteLinkRatioNumerator());
-        settingsLinkRatioRightInput.setText(speedInput.getText() == null ? "" : speedInput.getText().toString().trim());
+        settingsLinkRatioRightInput.setText(currentSpeedText);
         settingsStepsPerMeterInput.setText(prefsStore.getRouteStepsPerMeter());
-        settingsLoopInput.setText(loopInput.getText() == null ? "" : loopInput.getText().toString().trim());
+        settingsLoopInput.setText(prefsStore.getRouteLoopCount());
         settingsSatelliteSeekBar.setProgress(prefsStore.getNmeaSatelliteCount() - 1);
         updateSatelliteValue(settingsSatelliteSeekBar.getProgress());
         settingsSignalQualityGroup.check(signalQualityToButtonId(prefsStore.getNmeaSignalQuality()));
@@ -2094,7 +2174,7 @@ public class RouteRunActivity extends BaseActivity {
         settingsUpdateIntervalSeekBar.setProgress(updateIntervalToProgress(prefsStore.getLocationUpdateIntervalMillis()));
         updateUpdateIntervalValue(settingsUpdateIntervalSeekBar.getProgress());
         settingsNetworkSimulationSwitch.setChecked(prefsStore.isNetworkSimulationEnabled());
-        settingsDynamicIntensitySwitch.setChecked(speedFloatCheckBox.isChecked());
+        settingsDynamicIntensitySwitch.setChecked(prefsStore.isRouteSpeedFloat());
         settingsIntensityRangeInput.setText(prefsStore.getRouteIntensityVariationRange());
         settingsIntensityFrequencySeekBar.setProgress(
                 Math.round(prefsStore.getRouteIntensityVariationFrequency() * 100f)
@@ -2262,6 +2342,11 @@ public class RouteRunActivity extends BaseActivity {
         simulationSettingsDialog.setOnDismissListener(dialog -> {
             stopReminderFeedback();
             simulationSettingsDialog = null;
+            settingsModeSpinner = null;
+            settingsSpeedControlLayout = null;
+            settingsCadenceControlLayout = null;
+            settingsSpeedInput = null;
+            settingsCadenceInput = null;
             settingsLinkRatioLeftInput = null;
             settingsLinkRatioRightInput = null;
             settingsStepsPerMeterInput = null;
@@ -2299,6 +2384,26 @@ public class RouteRunActivity extends BaseActivity {
 
     private void saveSimulationSettings() {
         try {
+            RouteSimulationConfig.Mode selectedMode = getDialogSelectedSimulationMode();
+            String speedText = settingsSpeedInput == null || settingsSpeedInput.getText() == null
+                    ? ""
+                    : settingsSpeedInput.getText().toString().trim();
+            String cadenceText = settingsCadenceInput == null || settingsCadenceInput.getText() == null
+                    ? ""
+                    : settingsCadenceInput.getText().toString().trim();
+            String resolvedSpeedText;
+            if (selectedMode == RouteSimulationConfig.Mode.SPEED) {
+                parseDialogSimulationValue(settingsSpeedInput);
+                resolvedSpeedText = speedText;
+            } else {
+                parseDialogSimulationValue(settingsCadenceInput);
+                if (!TextUtils.isEmpty(speedText)) {
+                    parsePositiveDouble(speedText, getString(R.string.route_simulation_invalid));
+                    resolvedSpeedText = speedText;
+                } else {
+                    resolvedSpeedText = prefsStore.getRouteSpeed();
+                }
+            }
             String ratioNumerator = requireNonEmpty(settingsLinkRatioLeftInput, getString(R.string.route_link_invalid_ratio));
             String stepsPerMeter = requireNonEmpty(settingsStepsPerMeterInput, getString(R.string.route_link_steps_per_meter_invalid));
             parsePositiveDouble(ratioNumerator, getString(R.string.route_link_invalid_ratio));
@@ -2366,8 +2471,15 @@ public class RouteRunActivity extends BaseActivity {
                 throw new IllegalArgumentException(getString(R.string.route_floating_window_permission_required));
             }
 
+            restoringSimulationPrefs = true;
+            currentSimulationMode = selectedMode;
+            simulationModeSpinner.setSelection(selectedMode == RouteSimulationConfig.Mode.CADENCE ? 1 : 0, false);
+            speedInput.setText(resolvedSpeedText);
+            cadenceInput.setText(cadenceText);
             loopInput.setText(String.valueOf(loopCount));
             speedFloatCheckBox.setChecked(dynamicIntensityEnabled);
+            restoringSimulationPrefs = false;
+            updateSimulationModeViews(selectedMode);
             prefsStore.saveRouteStepsPerMeter(stepsPerMeter);
             prefsStore.saveRouteIntensityVariationSettings(intensityRange, intensityFrequency);
             prefsStore.saveRoutePathVariationSettings(naturalPathVariationEnabled, pathVariationAmplitude);
@@ -2386,7 +2498,18 @@ public class RouteRunActivity extends BaseActivity {
                     updateIntervalMillis,
                     networkSimulationEnabled
             );
-            persistSimulationPrefsWithRatio(ratioNumerator);
+            RouteDefinition selectedRoute = viewModel.getSelectedRoute().getValue();
+            prefsStore.saveRouteConfig(
+                    selectedMode == RouteSimulationConfig.Mode.CADENCE
+                            ? SimulationPrefsStore.ROUTE_MODE_CADENCE
+                            : SimulationPrefsStore.ROUTE_MODE_SPEED,
+                    resolvedSpeedText,
+                    cadenceText,
+                    String.valueOf(loopCount),
+                    dynamicIntensityEnabled,
+                    selectedRoute == null ? "" : selectedRoute.getId(),
+                    ratioNumerator
+            );
             applySimulationConfigHotIfPossible();
             if (serviceBinder != null) {
                 serviceBinder.reloadSimulationSettings();
@@ -2452,12 +2575,12 @@ public class RouteRunActivity extends BaseActivity {
     }
 
     private RouteSimulationConfig buildSimulationConfigForDialogInputs() {
-        RouteSimulationConfig.Mode simulationMode = getSelectedSimulationMode();
+        RouteSimulationConfig.Mode simulationMode = getDialogSelectedSimulationMode();
         double speed = simulationMode == RouteSimulationConfig.Mode.SPEED
-                ? parseSimulationValue(speedInput)
+                ? parseDialogSimulationValue(settingsSpeedInput != null ? settingsSpeedInput : speedInput)
                 : 0d;
         double cadence = simulationMode == RouteSimulationConfig.Mode.CADENCE
-                ? parseSimulationValue(cadenceInput)
+                ? parseDialogSimulationValue(settingsCadenceInput != null ? settingsCadenceInput : cadenceInput)
                 : 0d;
         int loopCount = parseLoopCount(settingsLoopInput);
         boolean dynamicIntensityEnabled = settingsDynamicIntensitySwitch != null && settingsDynamicIntensitySwitch.isChecked();
@@ -2582,11 +2705,17 @@ public class RouteRunActivity extends BaseActivity {
         if (entry == null) {
             return;
         }
-        simulationModeSpinner.setSelection("cadence".equalsIgnoreCase(entry.getMode()) ? 1 : 0, false);
+        RouteSimulationConfig.Mode importedMode = "cadence".equalsIgnoreCase(entry.getMode())
+                ? RouteSimulationConfig.Mode.CADENCE
+                : RouteSimulationConfig.Mode.SPEED;
+        restoringSimulationPrefs = true;
+        currentSimulationMode = importedMode;
+        simulationModeSpinner.setSelection(importedMode == RouteSimulationConfig.Mode.CADENCE ? 1 : 0, false);
         speedInput.setText(trimDouble(entry.getSpeed()));
         cadenceInput.setText(trimDouble(entry.getCadence()));
         loopInput.setText(String.valueOf(entry.getLoopCount()));
         speedFloatCheckBox.setChecked(entry.isDynamicIntensityEnabled());
+        restoringSimulationPrefs = false;
         prefsStore.saveRouteIntensityVariationSettings(trimDouble(entry.getIntensityVariationRange()), (float) entry.getIntensityVariationFrequency());
         prefsStore.saveRoutePathVariationSettings(entry.isNaturalPathVariationEnabled(), trimDouble(entry.getPathVariationAmplitude()));
         prefsStore.saveRouteAltitudeVariationSettings(
@@ -2598,6 +2727,16 @@ public class RouteRunActivity extends BaseActivity {
         );
         prefsStore.saveRouteStepsPerMeter(trimDouble(entry.getStepsPerMeter()));
         persistSimulationPrefsWithRatio(trimDouble(entry.getLinkRatioNumerator()));
+        if (settingsModeSpinner != null) {
+            settingsModeSpinner.setSelection(importedMode == RouteSimulationConfig.Mode.CADENCE ? 1 : 0, false);
+            updateDialogModeViews(importedMode);
+        }
+        if (settingsSpeedInput != null) {
+            settingsSpeedInput.setText(trimDouble(entry.getSpeed()));
+        }
+        if (settingsCadenceInput != null) {
+            settingsCadenceInput.setText(trimDouble(entry.getCadence()));
+        }
         if (settingsLinkRatioLeftInput != null) {
             settingsLinkRatioLeftInput.setText(trimDouble(entry.getLinkRatioNumerator()));
         }
@@ -2876,6 +3015,11 @@ public class RouteRunActivity extends BaseActivity {
         }
 
         List<SettingsSection> sections = new ArrayList<>();
+        sections.add(new SettingsSection(
+                dialogView.findViewById(R.id.section_settings_mode),
+                getString(R.string.route_settings_letter_mode),
+                "模拟 方式 模式 速度 步频 mode speed cadence"
+        ));
         sections.add(new SettingsSection(
                 dialogView.findViewById(R.id.section_settings_link),
                 getString(R.string.route_settings_letter_link),

@@ -161,7 +161,7 @@ public final class RouteSimulationEngine {
         // 仅在当前阶段配速保持时间耗尽后，抽取下一阶段目标速度
         if (intensityHoldRemainingMillis <= 0L) {
             targetIntensityOffsetMetersPerSecond = randomInRange(range);
-            // 频率越高，单阶段维持时间越短（默认 0.35 频率下约维持 12 ~ 35 秒）
+            // 频率越高，单阶段维持时间越短（默认 0.50 频率下约维持 12 ~ 30 秒）
             long minHoldMs = 12_000L;
             long maxHoldMs = Math.max(minHoldMs, (long) (45_000L - frequency * 30_000L));
             long spanMs = Math.max(5_000L, maxHoldMs - minHoldMs);

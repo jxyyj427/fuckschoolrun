@@ -150,121 +150,93 @@
             android:textSize="12sp" />
 
         <LinearLayout
+            android:id="@+id/layout_run_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/layout_run_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingBottom="56dp">
+
+            <Button
+                android:id="@+id/btn_run_simulation_settings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="@string/route_link_settings_button" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/route_mode_label" />
+                android:orientation="vertical"
+                android:visibility="gone">
 
                 <Spinner
                     android:id="@+id/spinner_run_mode"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minWidth="120dp"
+                    android:saveEnabled="false"
                     android:spinnerMode="dropdown" />
-            </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/layout_run_speed_control"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:id="@+id/layout_run_speed_control"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/route_speed_label" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                <EditText
-                    android:id="@+id/et_run_speed"
-                    android:layout_width="48dp"
+                    <EditText
+                        android:id="@+id/et_run_speed"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:inputType="numberDecimal"
+                        android:saveEnabled="false"
+                        android:text="3.8" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layout_run_cadence_control"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:inputType="numberDecimal"
-                    android:text="15" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                    <EditText
+                        android:id="@+id/et_run_cadence"
+                        android:layout_width="56dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:hint="@string/route_cadence_hint"
+                        android:inputType="numberDecimal"
+                        android:saveEnabled="false"
+                        android:text="" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/route_speed_unit" />
-            </LinearLayout>
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-            <LinearLayout
-                android:id="@+id/layout_run_cadence_control"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:visibility="gone">
+                    <EditText
+                        android:id="@+id/et_loop_count"
+                        android:layout_width="40dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:saveEnabled="false"
+                        android:text="100" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/route_cadence_label" />
-
-                <EditText
-                    android:id="@+id/et_run_cadence"
-                    android:layout_width="56dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:hint="@string/route_cadence_hint"
-                    android:inputType="numberDecimal"
-                    android:text="" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/route_cadence_unit" />
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/btn_run_simulation_settings"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="@string/route_link_settings_button" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/route_loop_label" />
-
-                <EditText
-                    android:id="@+id/et_loop_count"
-                    android:layout_width="40dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:inputType="number"
-                    android:text="100" />
-
-                <CheckBox
-                    android:id="@+id/cb_speed_float"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:checked="true"
-                    android:text="@string/route_speed_float" />
+                    <CheckBox
+                        android:id="@+id/cb_speed_float"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:checked="true"
+                        android:saveEnabled="false"
+                        android:text="@string/route_speed_float" />
+                </LinearLayout>
             </LinearLayout>
 
             <LinearLayout

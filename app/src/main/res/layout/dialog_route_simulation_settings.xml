@@ -43,9 +43,91 @@
             android:paddingBottom="16dp">
 
             <LinearLayout
+                android:id="@+id/section_settings_mode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/route_mode_label" />
+
+                    <Spinner
+                        android:id="@+id/spinner_dialog_run_mode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minWidth="120dp"
+                        android:spinnerMode="dropdown" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layout_dialog_speed_control"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/route_speed_label" />
+
+                    <EditText
+                        android:id="@+id/et_dialog_run_speed"
+                        android:layout_width="64dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:inputType="numberDecimal"
+                        android:text="3.8" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/route_speed_unit" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layout_dialog_cadence_control"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/route_cadence_label" />
+
+                    <EditText
+                        android:id="@+id/et_dialog_run_cadence"
+                        android:layout_width="72dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:hint="@string/route_cadence_hint"
+                        android:inputType="numberDecimal"
+                        android:text="" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/route_cadence_unit" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/section_settings_link"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
                 android:orientation="vertical">
 
                 <LinearLayout
@@ -83,7 +165,7 @@
                         android:focusable="false"
                         android:gravity="center"
                         android:inputType="numberDecimal"
-                        android:text="15" />
+                        android:text="3.8" />
                 </LinearLayout>
 
                 <TextView
@@ -380,7 +462,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:max="100"
-                        android:progress="35" />
+                        android:progress="50" />
 
                     <TextView
                         android:layout_width="match_parent"
@@ -430,7 +512,7 @@
                             android:gravity="center"
                             android:hint="@string/route_path_variation_hint"
                             android:inputType="numberDecimal"
-                            android:text="1.0" />
+                            android:text="0.5" />
 
                         <TextView
                             android:layout_width="wrap_content"
